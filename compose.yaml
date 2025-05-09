@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:bookworm
+    container_name: django-todo-db
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    env_file:
+      - ./.env
+    ports:
+      - '5432:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: django-todo-app
+    ports:
+      - '8000:8000'
+    environment:
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,188.245.96.173
+      - DJANGO_CSRF_TRUSTED_ORIGINS=${DJANGO_CSRF_TRUSTED_ORIGINS}
+      - DATABASE_ENGINE=${DATABASE_ENGINE}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+
+  caddy:
+    image: caddy:alpine
+    container_name: django-todo-caddy
+    ports:
+      - 80:80
+    volumes:
+      - /home/detkotom/Caddyfile:/etc/caddy/Caddyfile
+      - /home/detkotom/staticfiles:/srv/static
+    depends_on:
+      - web
+
+volumes:
+  pg_data:

@@ -1,0 +1,29 @@
+# {
+#     debug
+# }
+
+http://localhost {
+    # log {
+    #     output file /var/log/caddy/access.log
+    #     format json
+    #     level DEBUG
+    # }
+
+    # Serve static files from staticfiles directory
+    handle /static/* {
+        root * /srv/
+        file_server
+    }
+
+    # Proxy all other requests to Gunicorn
+    handle {
+        reverse_proxy http://django-todo-app:8000 {
+            header_up Host {host}
+        }
+    }
+}
+
+
+# header_up X-Real-IP {remote}
+# header_up X-Forwarded-For {remote}
+# header_up X-Forwarded-Proto {scheme}
